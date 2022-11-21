@@ -28,8 +28,8 @@ class Stepper_Motor:
         
     def receive_data(self):
         
-        IP = "10.33.59.139"
-        PORT = 5000
+        IP = '*****'
+        PORT = '*****'
         sock = socket.socket(socket.AF_INET , socket.SOCK_DGRAM)
         sock.bind((IP,PORT))
         data, addr = sock.recvfrom(1024)
