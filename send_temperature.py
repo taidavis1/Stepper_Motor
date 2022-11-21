@@ -119,7 +119,7 @@ class DB_Connection:
     
     def send_to_motor(self , data):
         
-        IP = "10.33.59.139"
+        IP = '*****'
 
         PORT = 5000
 
@@ -136,11 +136,11 @@ class DB_Connection:
 if __name__ == '__main__':
             
     db = DB_Connection(
-        host= 'database-1.clsjoubtueoi.us-west-2.rds.amazonaws.com',
-        user= 'admin',
-        password= '12345678',
+        host= '*****',
+        user= '*****',
+        password= '*****',
         port=3306,
-        db='ucm_db'
+        db='*****'
     )
     
     db.create_table()
