@@ -8,30 +8,41 @@ import datetime
 import socket
 import pymysql
 #### Read Temperature ###########
-def read_file():
-    os.system('modprobe w1-gpio')
-    os.system('modprobe w1-therm')
-    directory = '/sys/bus/w1/devices/'
-    folder = glob.glob(directory + '28*')[0]
-    file = folder + '/w1_slave'
-    temperature_data = open(file, 'r')
-    lines = temperature_data.readlines()
-    temperature_data.close()
-    return lines
 
-def read_temp():
-    tempf = 0
-    lines = read_file()
-    while lines[0].strip()[-3:] != 'YES':
-        time.sleep(0.2)
+class read_file:
+    
+    def __init__(self , folder_name_1, directory , folder_name_2):
+        
+        self.folder_name_1 = folder_name_1
+        
+        self.directory = directory
+        
+        self.folder_name_2 = folder_name_2
+      
+    def read_file(self):
+        os.system(self.folder_name_1)
+        os.system(self.folder_name_2)
+        directory = self.directory
+        folder = glob.glob(directory + '28*')[0]
+        file = folder + '/w1_slave'
+        temperature_data = open(file, 'r')
+        lines = temperature_data.readlines()
+        temperature_data.close()
+        return lines
+
+    def read_temp():
+        tempf = 0
         lines = read_file()
-    equals_pos = lines[1].find('t=')
-    if equals_pos != -1:
-        temp_string = lines[1][equals_pos+2:]
-        temp_c = float(temp_string) / 1000.0
-        temp_f = temp_c * 9.0 / 5.0 + 32.0
-        tempf = round(temp_f)
-        return tempf
+        while lines[0].strip()[-3:] != 'YES':
+            time.sleep(0.2)
+            lines = read_file()
+        equals_pos = lines[1].find('t=')
+        if equals_pos != -1:
+            temp_string = lines[1][equals_pos+2:]
+            temp_c = float(temp_string) / 1000.0
+            temp_f = temp_c * 9.0 / 5.0 + 32.0
+            tempf = round(temp_f)
+            return tempf
         
 #### Connection With Amazon Web Services ############
 
@@ -73,10 +84,8 @@ class DB_Connection:
     
         self.cursor.execute("CREATE TABLE IF NOT EXISTS temperature_data(id INT PRIMARY KEY AUTO_INCREMENT NOT NULL , temperature INT NOT NULL, timestream VARCHAR(32) NOT NULL)")
                            
-    def send_data(self , date):
-                        
-        temp = read_temp()
-                
+    def send_data(self , date , temp):
+                      
         message = {
                 
             'temperature' : temp,
@@ -89,14 +98,12 @@ class DB_Connection:
         
         check = self.cursor.fetchone()
         
-        print(check)
+        print("Data in DB: " , check)
         
         time.sleep(1)
             
         if check:
-            
-            print("Data already in the database! ")
-            
+                        
             self.cursor.execute("UPDATE temperature_data SET timestream = %s WHERE temperature = %s " , (date , temp) )
                                                                         
             print("Update The time successfully")
@@ -147,11 +154,19 @@ if __name__ == '__main__':
         
     try:
         
+#         folder_1 = 'modprobe w1-gpio'
+        
+#         folder_2 = 'modprobe w1-therm'
+        
+#         direct = '/sys/bus/w1/devices/'
+        
+        files = read_file('modprobe w1-gpio' , '/sys/bus/w1/devices/' , 'modprobe w1-therm') 
+
         while True:
             
             date = datetime.datetime.now()
                                                    
-            db.send_data(date)
+            db.send_data(date , files.read_temp())
             
             time.sleep(2)
                                     
